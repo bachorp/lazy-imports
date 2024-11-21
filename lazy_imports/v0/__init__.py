@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Philip May, Deutsche Telekom AG
+# Copyright (c) 2024 Pascal Bachor
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Lazy-Imports main package."""
+"""Lazy-Imports v0."""
 
-from lazy_imports.v0 import LazyImporter
-from lazy_imports.try_import import try_import
+from ..try_import import try_import
+from .lazy_imports import LazyImporter
 
 
-# Versioning follows the Semantic Versioning Specification https://semver.org/ and
-# PEP 440 -- Version Identification and Dependency Specification: https://www.python.org/dev/peps/pep-0440/  # noqa: E501
 __version__ = "0.3.2rc1"
 
-__all__ = ["LazyImporter", "try_import", "__version__"]
+__all__ = [
+    "LazyImporter",
+    "try_import",
+    "__version__",
+]

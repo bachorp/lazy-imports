@@ -69,15 +69,15 @@ class _DeferredImportExceptionContextManager:
         if isinstance(exc_value, (ImportError, SyntaxError)):
             if isinstance(exc_value, ImportError):
                 message = (
-                    "Tried to import '{}' but failed. Please make sure that the package is "
-                    "installed correctly to use this feature. Actual error: {}."
-                ).format(exc_value.name, exc_value)
-            elif isinstance(exc_value, SyntaxError):
+                    f"Tried to import '{exc_value.name}' but failed. Please make sure that the package is "
+                    f"installed correctly to use this feature. Actual error: {exc_value}."
+                )
+            elif isinstance(exc_value, SyntaxError):  # type: ignore [reportUnnecessaryIsInstance]
                 message = (
-                    "Tried to import a package but failed due to a syntax error in {}. Please "
+                    f"Tried to import a package but failed due to a syntax error in {exc_value.filename}. Please "
                     "make sure that the Python version is correct to use this feature. Actual "
-                    "error: {}."
-                ).format(exc_value.filename, exc_value)
+                    f"error: {exc_value}."
+                )
             else:
                 assert False
 

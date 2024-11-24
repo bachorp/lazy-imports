@@ -12,14 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Lazy-Imports main package."""
+"""TODO."""
 
-from lazy_imports.v0 import LazyImporter
-from lazy_imports.try_import import try_import
+from .lazy_imports import LazyModule, ShadowingWarning, Statement, as_package, load
+from .try_import import try_import
+from .v0.lazy_imports import LazyImporter
 
 
 # Versioning follows the Semantic Versioning Specification https://semver.org/ and
 # PEP 440 -- Version Identification and Dependency Specification: https://www.python.org/dev/peps/pep-0440/  # noqa: E501
-__version__ = "0.3.2rc1"
+__version__ = "1.0.0rc1"
 
-__all__ = ["LazyImporter", "try_import", "__version__"]
+__all__ = [
+    # .lazy_imports
+    "LazyModule",
+    "ShadowingWarning",
+    "Statement",
+    "as_package",
+    "load",
+    # .try_import
+    "try_import",
+    # .v0.lazy_imports
+    "LazyImporter",
+    # local
+    "__version__",
+]

@@ -60,7 +60,7 @@ the project itself will be closed by our community managers.
   about the test scope in the PR description (e.g. “Test passed: Upgrade version from
   0.42 to 0.42.23.”).
 - To differentiate your PR from PRs ready to be merged and to avoid duplicated work,
-  please prefix the title with \[WIP\].
+  please prefix the title with [WIP].
 - If your pull request is not getting reviewed, or you need a specific person to review it,
   you can @-reply a [code owner](#code-owners) asking for a review in the pull request.
 - Post review:

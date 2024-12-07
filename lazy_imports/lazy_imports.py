@@ -32,7 +32,7 @@ class _Immediate:
     value: Any
 
     def __str__(self) -> str:
-        return f"object of type {type(self.value).__name__}"
+        return f"object of type {type(self.value).__qualname__}"
 
 
 @dataclass
@@ -95,7 +95,7 @@ def _parse(statement_or_code: Union[str, "Statement"]) -> Iterable["Statement"]:
                 yield stmt
             else:
                 raise ValueError(
-                    f"expected parsed statement to be of type {ast.Import.__name__} or {ast.ImportFrom.__name__} but got {type(stmt).__name__}"  # noqa: E501
+                    f"expected parsed statement to be of type {ast.Import.__qualname__} or {ast.ImportFrom.__qualname__} but got {type(stmt).__qualname__}"  # noqa: E501
                 )
     else:
         yield statement_or_code

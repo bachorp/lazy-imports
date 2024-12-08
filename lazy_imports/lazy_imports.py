@@ -73,7 +73,7 @@ class _Attribute:
         if isinstance(self.value, _ModuleImport):
             return ast.Import([ast.alias(name=self.value.name, asname=self.name)])
 
-        if isinstance(self.value, _AttributeImport):  # type: ignore [reportUnnecessaryIsInstance]
+        if isinstance(self.value, _AttributeImport):  # pyright: ignore[reportUnnecessaryIsInstance]
             return ast.ImportFrom(
                 module=self.value.module,
                 names=[ast.alias(name=self.value.name, asname=self.name)],
@@ -107,7 +107,7 @@ def _to_attributes(statement: "Statement") -> Iterable[_Attribute]:
     elif isinstance(statement, ast.Import):
         for name in statement.names:
             yield _Attribute(name=name.asname or name.name, value=_ModuleImport(name=name.name))
-    elif isinstance(stmt, ast.ImportFrom):  # type: ignore [reportUnnecessaryIsInstance]
+    elif isinstance(statement, ast.ImportFrom):  # pyright: ignore[reportUnnecessaryIsInstance]
         for name in statement.names:
             if name.name == "*":
                 raise ValueError(f"cannot lazily perform a wildcard import (from module {statement.module})")
@@ -140,19 +140,19 @@ class LazyModule(ModuleType):
         - `name` (required): The module's name (attribute `__name__`).
         - `doc`: The module's docstring (attribute `__doc__`).
         - `unsafe_overrides`: Existing attributes (e.g. `__dir__`) that are allowed to be overridden.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
         *statements_or_code: Union[
-            str, Union[ast.Import, ast.ImportFrom, Tuple[str, Any]]  # spell out Statement for documentation
+            str, Union[ast.Import, ast.ImportFrom, Tuple[str, Any]]  # spell out types for transparency
         ],
         name: str,
         doc: Union[str, None] = None,
         unsafe_overrides: Collection[str] = frozenset(),
     ) -> None:
         super().__init__(name, doc)
-        self.__deferred_attrs: Dict[str, Union[_ModuleImport, _AttributeImport]] = {}
+        self.__deferred_attrs: Dict[str, _Deferred] = {}
         self.__resolving: Dict[str, object] = {}
 
         merged_attributes: Dict[str, Union[_AttributeValue, _Submodule]] = {}
@@ -169,24 +169,26 @@ class LazyModule(ModuleType):
                     shadow()
 
                 merged_attributes[name] = attr.value
-            else:
-                if type(existing) not in (_Submodule, type(None)):  # TODO: Replace with NoneType in 3.10+
-                    shadow()
+                continue
 
-                merged_attributes.setdefault(
-                    name, _Submodule()
-                ).append(  # type: ignore[reportUnknownMemberType, reportAttributeAccessIssue, union-attr]
-                    _Attribute(name=sub_name, value=attr.value)
-                )
+            sub_attr = _Attribute(name=sub_name, value=attr.value)
+            if isinstance(existing, _Submodule):
+                existing.append(sub_attr)
+                continue
 
-        for name, value in merged_attributes.items():  # type: ignore[assignment]
+            if existing is not None:
+                shadow()
+
+            merged_attributes[name] = _Submodule([sub_attr])
+
+        for name, value in merged_attributes.items():
             if hasattr(self, name) and name not in unsafe_overrides:
                 raise ValueError(f"not allowed to override reserved attribute {name} (with {value})")
             if isinstance(value, _Immediate):
                 setattr(self, name, value.value)
-            elif isinstance(value, _Deferred):
+            elif isinstance(value, (_ModuleImport, _AttributeImport)):  # TODO: Replace with _Deferred in 3.10+
                 self.__deferred_attrs[name] = value
-            elif isinstance(value, _Submodule):  # type: ignore [reportUnnecessaryIsInstance]
+            elif isinstance(value, _Submodule):  # pyright: ignore[reportUnnecessaryIsInstance]
                 setattr(
                     self, name, LazyModule(*map(lambda sub: sub.to_statement(), value), name=f"{self.__name__}.{name}")
                 )
@@ -210,7 +212,7 @@ class LazyModule(ModuleType):
             try:
                 if isinstance(target, _ModuleImport):
                     value = importlib.import_module(target.name)
-                elif isinstance(target, _AttributeImport):  # type: ignore [reportUnnecessaryIsInstance]
+                elif isinstance(target, _AttributeImport):  # pyright: ignore[reportUnnecessaryIsInstance]
                     value = getattr(importlib.import_module(target.module_relatively(), self.__name__), target.name)
                 else:
                     assert False
@@ -229,6 +231,7 @@ class LazyModule(ModuleType):
 
 
 def as_package(file: Path) -> Iterable[Statement]:
+    # noqa: D205
     """Creates the attributes `__file__` and `__path__` required for a module being a proper package.
     This allows to import subpackges from the appropriate locations.
 

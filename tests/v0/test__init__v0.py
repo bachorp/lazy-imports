@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Pascal Bachor
+# Copyright (c) 2021 Philip May
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Lazy-Imports v0."""
+from packaging.version import Version
 
-from ..try_import import try_import
-from .lazy_imports import LazyImporter
+from lazy_imports.v0 import __version__
 
 
-__version__ = "0.4.0+v1"
-
-__all__ = [
-    "LazyImporter",
-    "try_import",
-    "__version__",
-]
+def test__version__():
+    # if __version__ does not conform to PEP 440 InvalidVersion will be raised
+    Version(__version__)

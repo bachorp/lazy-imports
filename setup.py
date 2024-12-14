@@ -66,8 +66,8 @@ setuptools.setup(
     project_urls={
         "Bug Tracker": source_code + "/issues",
         "Source Code": source_code,
-        "Contributing": source_code + "/blob/main/CONTRIBUTING.md",
-        "Code of Conduct": source_code + "/blob/main/CODE_OF_CONDUCT.md",
+        "Contributing": source_code + "/blob/HEAD/CONTRIBUTING.md",
+        "Code of Conduct": source_code + "/blob/HEAD/CODE_OF_CONDUCT.md",
     },
     packages=setuptools.find_packages(),
     python_requires=">=3.9",
@@ -75,9 +75,7 @@ setuptools.setup(
     extras_require=extras_require,
     keywords=keywords,
     classifiers=[
-        # "Development Status :: 3 - Alpha",
-        "Development Status :: 4 - Beta",
-        # "Development Status :: 5 - Production/Stable",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",

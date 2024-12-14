@@ -12,7 +12,8 @@ jobs:
   checks:
     env:
       src: "lazy_imports"
-      other-src: "tests setup.py"
+      test-src: "tests"
+      other-src: "setup.py"
 
     runs-on: ubuntu-latest
     strategy:
@@ -39,13 +40,13 @@ jobs:
         run: pydocstyle --count ${{ env.src }} ${{ env.other-src }}
 
       - name: Check with black
-        run: black ${{ env.src }} ${{ env.other-src }} --check --diff
+        run: black ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff
 
       - name: Check with flake8
         run: flake8 ${{ env.src }} ${{ env.other-src }}
 
       - name: Check with isort
-        run: isort ${{ env.src }} ${{ env.other-src }} --check --diff
+        run: isort ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff
 
       - name: Check with mdformat
         run: mdformat --check *.md

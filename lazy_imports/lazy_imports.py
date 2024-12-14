@@ -14,17 +14,25 @@
 
 """TODO."""
 
-# pylint: disable=missing-function-docstring,redefined-argument-from-local,cell-var-from-loop
-
 import ast
 import importlib
 import itertools
 import sys
 import warnings
 from dataclasses import dataclass
+from functools import reduce
 from pathlib import Path
 from types import ModuleType
 from typing import Any, Collection, Dict, Iterable, List, Tuple, Union  # TODO: Get rid of Union in 3.10+
+
+
+if sys.version_info >= (3, 11):  # TODO: Remove in 3.11+
+    from typing import assert_never
+else:
+    from typing import NoReturn
+
+    def assert_never(_never: NoReturn) -> NoReturn:  # noqa: D103; pylint: disable=missing-function-docstring
+        assert False
 
 
 @dataclass
@@ -49,7 +57,7 @@ class _AttributeImport:
     module: Union[str, None]
     name: str
 
-    def module_relatively(self) -> str:
+    def module_relatively(self) -> str:  # noqa: D103; pylint: disable=missing-function-docstring
         return "." * (self.level) + (self.module or "")
 
     def __str__(self) -> str:
@@ -66,7 +74,7 @@ class _Attribute:
     name: str
     value: _AttributeValue
 
-    def to_statement(self) -> "Statement":
+    def to_statement(self) -> "Statement":  # noqa: D103; pylint: disable=missing-function-docstring
         if isinstance(self.value, _Immediate):
             return (self.name, self.value.value)
 
@@ -80,7 +88,7 @@ class _Attribute:
                 level=self.value.level,
             )
 
-        assert False
+        assert_never(self.value)
 
 
 class _Submodule(List[_Attribute]):
@@ -117,7 +125,7 @@ def _to_attributes(statement: "Statement") -> Iterable[_Attribute]:
                 value=_AttributeImport(module=statement.module, name=name.name, level=statement.level),
             )
     else:
-        assert False
+        assert_never(statement)
 
 
 # TODO: Declare as TypeAlias in 3.10+ and use type statement in 3.12+
@@ -155,33 +163,37 @@ class LazyModule(ModuleType):
         self.__deferred_attrs: Dict[str, _Deferred] = {}
         self.__resolving: Dict[str, object] = {}
 
-        merged_attributes: Dict[str, Union[_AttributeValue, _Submodule]] = {}
-        for attr in itertools.chain(*map(_to_attributes, itertools.chain(*map(_parse, statements_or_code)))):
-            name, sub_name = name.split(".", maxsplit=1) if "." in attr.name else (attr.name, None)
-            existing = merged_attributes.get(name)
+        def merge_attr(
+            acc: Dict[str, Union[_AttributeValue, _Submodule]], attr: _Attribute
+        ) -> Dict[str, Union[_AttributeValue, _Submodule]]:
+            name, sub_name = attr.name.split(".", maxsplit=1) if "." in attr.name else (attr.name, None)
+            existing = acc.get(name)
 
             def shadow() -> None:
-                warnings.warn(ShadowingWarning(f"{name} ({value}) shadows {existing} in lazy module {self.__name__}"))
-                merged_attributes.pop(name)
+                warnings.warn(
+                    ShadowingWarning(f"{name} ({attr.value}) shadows {existing} in lazy module {self.__name__}")
+                )
+                acc.pop(name)
 
             if sub_name is None:
                 if existing is not None:
                     shadow()
 
-                merged_attributes[name] = attr.value
-                continue
+                acc[name] = attr.value
+                return acc
 
             sub_attr = _Attribute(name=sub_name, value=attr.value)
             if isinstance(existing, _Submodule):
                 existing.append(sub_attr)
-                continue
+                return acc
 
             if existing is not None:
                 shadow()
 
-            merged_attributes[name] = _Submodule([sub_attr])
+            acc[name] = _Submodule([sub_attr])
+            return acc
 
-        for name, value in merged_attributes.items():
+        def set_or_defer_attr(name: str, value: Union[_AttributeValue, _Submodule]) -> None:
             if hasattr(self, name) and name not in unsafe_overrides:
                 raise ValueError(f"not allowed to override reserved attribute {name} (with {value})")
             if isinstance(value, _Immediate):
@@ -193,7 +205,17 @@ class LazyModule(ModuleType):
                     self, name, LazyModule(*map(lambda sub: sub.to_statement(), value), name=f"{self.__name__}.{name}")
                 )
             else:
-                assert False
+                assert_never(value)
+
+        empty: Dict[str, Union[_AttributeValue, _Submodule]] = {}  # annotation for mypy
+        map(
+            lambda attr: set_or_defer_attr(*attr),
+            reduce(
+                merge_attr,
+                itertools.chain(*map(_to_attributes, itertools.chain(*map(_parse, statements_or_code)))),
+                empty,
+            ).items(),
+        )
 
     def __dir__(self) -> Iterable[str]:
         return itertools.chain(super().__dir__(), self.__deferred_attrs.keys())
@@ -215,7 +237,7 @@ class LazyModule(ModuleType):
                 elif isinstance(target, _AttributeImport):  # pyright: ignore[reportUnnecessaryIsInstance]
                     value = getattr(importlib.import_module(target.module_relatively(), self.__name__), target.name)
                 else:
-                    assert False
+                    assert_never(target)
             except Exception as e:
                 if sys.version_info >= (3, 11):  # TODO: Remove in 3.11+
                     e.add_note(  # pylint: disable=no-member

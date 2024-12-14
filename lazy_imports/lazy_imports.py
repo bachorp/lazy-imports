@@ -193,7 +193,12 @@ class LazyModule(ModuleType):
             acc[name] = _Submodule([sub_attr])
             return acc
 
-        def set_or_defer_attr(name: str, value: Union[_AttributeValue, _Submodule]) -> None:
+        empty: Dict[str, Union[_AttributeValue, _Submodule]] = {}  # annotation for mypy
+        for name, value in reduce(  # pylint: disable=redefined-argument-from-local
+            merge_attr,
+            itertools.chain(*map(_to_attributes, itertools.chain(*map(_parse, statements_or_code)))),
+            empty,
+        ).items():
             if hasattr(self, name) and name not in unsafe_overrides:
                 raise ValueError(f"not allowed to override reserved attribute {name} (with {value})")
             if isinstance(value, _Immediate):
@@ -206,16 +211,6 @@ class LazyModule(ModuleType):
                 )
             else:
                 assert_never(value)
-
-        empty: Dict[str, Union[_AttributeValue, _Submodule]] = {}  # annotation for mypy
-        map(
-            lambda attr: set_or_defer_attr(*attr),
-            reduce(
-                merge_attr,
-                itertools.chain(*map(_to_attributes, itertools.chain(*map(_parse, statements_or_code)))),
-                empty,
-            ).items(),
-        )
 
     def __dir__(self) -> Iterable[str]:
         return itertools.chain(super().__dir__(), self.__deferred_attrs.keys())

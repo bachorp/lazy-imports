@@ -14,7 +14,7 @@
 
 """TODO."""
 
-from .lazy_imports import LazyModule, ShadowingWarning, Statement, as_package, load
+from .lazy_imports import LazyModule, ShadowingWarning, Statement, as_package, load, module_source
 from .try_import import try_import
 from .v0.lazy_imports import LazyImporter
 
@@ -30,6 +30,7 @@ __all__ = [
     "Statement",
     "as_package",
     "load",
+    "module_source",
     # .try_import
     "try_import",
     # .v0.lazy_imports

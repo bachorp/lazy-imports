@@ -16,6 +16,8 @@
 
 import ast
 import importlib
+import importlib.util
+import inspect
 import itertools
 import sys
 import warnings
@@ -247,17 +249,29 @@ class LazyModule(ModuleType):
             self.__resolving.pop(name)
 
 
-def as_package(file: Path) -> Iterable[Statement]:
+def as_package(file: Path) -> Iterable[Tuple[str, Any]]:
     # noqa: D205
-    """Creates the attributes `__file__` and `__path__` required for a module being a proper package.
+    """Creates the attributes `__file__` and `__path__` required for a module to be a (regular) package.
     This allows to import subpackges from the appropriate locations.
 
     The parameter `file` should be the path to the file from which the module is loaded.
+    If inside the (lazy) package's `__init__.py` file, `Path(__file__)` can be used.
     """
     yield ("__file__", str(file))
-    yield ("__path__", (str(file.parent.name),))
+    yield ("__path__", (str(file.parent),))
 
 
 def load(module: ModuleType) -> None:
     """Loads the module `module` by registering it in the global module store `sys.modules`."""
     sys.modules[module.__name__] = module
+
+
+def module_source(name: str, package: Union[str, None]) -> str:
+    """Returns the source code of the module `name`.
+
+    If `name` is relative, `package` must be supplied."""
+    spec = importlib.util.find_spec(name, package)
+    if spec is None:
+        raise ImportError(f"could not find module {name}{'' if package is None else f' in package {package}'}")
+
+    return inspect.getsource(importlib.util.module_from_spec(spec))

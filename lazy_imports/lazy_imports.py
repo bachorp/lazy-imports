@@ -269,7 +269,8 @@ def load(module: ModuleType) -> None:
 def module_source(name: str, package: Union[str, None]) -> str:
     """Returns the source code of the module `name`.
 
-    If `name` is relative, `package` must be supplied."""
+    If `name` is relative, `package` must be supplied.
+    """
     spec = importlib.util.find_spec(name, package)
     if spec is None:
         raise ImportError(f"could not find module {name}{'' if package is None else f' in package {package}'}")

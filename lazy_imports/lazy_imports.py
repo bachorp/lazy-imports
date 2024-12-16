@@ -267,7 +267,7 @@ def load(module: ModuleType) -> None:
 
 
 def module_source(name: str, package: Union[str, None]) -> str:
-    """Returns the source code of the module `name`.
+    """Returns the source code of the module `name` without loading the module.
 
     If `name` is relative, `package` must be supplied.
     """

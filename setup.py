@@ -62,12 +62,10 @@ setuptools.setup(
     description="Tool to support lazy imports",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url=source_code,
     project_urls={
+        "Changelog": source_code + "/blob/HEAD/CHANGELOG.md",
         "Bug Tracker": source_code + "/issues",
         "Source Code": source_code,
-        "Contributing": source_code + "/blob/main/CONTRIBUTING.md",
-        "Code of Conduct": source_code + "/blob/main/CODE_OF_CONDUCT.md",
     },
     packages=setuptools.find_packages(),
     python_requires=">=3.9",

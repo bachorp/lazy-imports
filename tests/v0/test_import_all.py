@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# import warnings
+
+
+# warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 from test_package_no_missing import *  # noqa: F403
 
 from lazy_imports import __version__ as version

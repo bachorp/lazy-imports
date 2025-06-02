@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# import warnings
+
 import pytest
 
 from lazy_imports import LazyImporter, __version__
 
 
-def test_sinple_case() -> None:
+# warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+
+def test_simple_case() -> None:
     _import_structure = {
         "lazy_imports": ["LazyImporter"],
     }

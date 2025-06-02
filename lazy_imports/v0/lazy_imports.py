@@ -28,6 +28,9 @@ from types import ModuleType
 from typing import Any, Dict, List, Union
 
 
+# from warnings import warn
+
+
 @dataclass
 class Submodule:
     """Submodule.
@@ -83,6 +86,11 @@ class LazyImporter(ModuleType):
         import_structure: Dict[str, List[str]],
         extra_objects: Union[Dict[str, Any], None] = None,
     ):
+        # warn(
+        #     DeprecationWarning(
+        #         "LazyImporter is deprecated and will be removed in a future version. Use LazyModule instead."
+        #     )
+        # )
         super().__init__(name)
         self._exports: Dict[str, Export] = {}
 
@@ -120,7 +128,7 @@ class LazyImporter(ModuleType):
             value = self._get_module(name)
         elif isinstance(target, FromSubmodule):
             value = getattr(self._get_module(target.submodule), name)
-        elif isinstance(target, Raw):
+        elif isinstance(target, Raw):  # type: ignore [reportUnnecessaryIsInstance]
             value = target.value
         else:
             assert False

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Lazy-Imports v0."""
+"""LazyImporter (package v0)."""
 
 from ..try_import import try_import
 from .lazy_imports import LazyImporter

@@ -12,24 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""TODO."""
+"""LazyModule and associated types."""
 
 import ast
 import importlib
-import importlib.util
-import inspect
 import itertools
 import sys
 import warnings
 from dataclasses import dataclass
-from pathlib import Path
 from types import ModuleType
-from typing import Any, Collection, Iterable, Union  # TODO: Remove Union in 3.10+
+from typing import Any, Iterable, Union
 
 
-# TODO: Prefer match/case over if/elif in 3.10+
+# Can be improved with later versions of Python:
+# 3.10+: Union -> |, if/elif -> match, TypeAlias
+# 3.12+: type statement
 
-if sys.version_info >= (3, 11):  # TODO: Remove in 3.11+
+if sys.version_info >= (3, 11):
     from typing import assert_never
 else:
     from typing import NoReturn
@@ -41,7 +40,6 @@ else:
         raise AssertionError(f"Expected code to be unreachable, but got: {value}")
 
 
-# TODO: Declare as TypeAlias in 3.10+ and use type statement in 3.12+
 Statement = Union[tuple[str, Any], ast.ImportFrom]
 
 
@@ -81,7 +79,6 @@ class _AttributeImport:
         return f"attribute {self.name!r} imported from module {self.module_relatively()}"
 
 
-# TODO: Declare as TypeAlias in 3.10+ and use type statement in 3.12+
 _Deferred = _AttributeImport
 _AttributeValue = Union[_Immediate, _Deferred]
 
@@ -113,26 +110,27 @@ class ShadowingWarning(UserWarning):
 
 
 class LazyModule(ModuleType):
-    """A module whose attributes, if they are defined to be attributes of other modules, are resolved lazily in the sense that loading the corresponding module is deferred until an attribute is first accessed.
+    """A module whose attributes, if they are defined to be attributes of other modules, are resolved lazily in the sense that loading the corresponding module is deferred until the attribute is first accessed.
 
     Constructor arguments:
-        - `statement_or_code` (repeated positional) - Definition of the module's main attributes. Each element is either
-            - a `str` to be parsed as a sequence of import [..] from [..] statements,
+        - `statement_or_code` *(repeated positional)* - Definition of the module's main attributes. Each element is either
+            - a `str` to be parsed as python code consisting of `from <module> import <attribute>` statements,
             - an instance of `ast.ImportFrom`, or
-            - a tuple `(name, value)` constituting a plain (non-lazy) attribute.
-        - `name` (required) - The module's name (attribute `__name__`).
+            - a tuple `(<name>, <value>)` constituting a plain (non-lazy) attribute.
+        - `name` *(required)* - The module's name (attribute `__name__`).
         - `doc` - The module's docstring (attribute `__doc__`).
-        - `auto___all__` (default: `True`) - Whether to automatically generate and include the attribute `__all__` unless this attribute is already given.
-        - `unsafe_overrides` - Existing attributes (e.g. `__dir__`) that are allowed to be overridden.
+        - `auto_all` *(default: `True`)* - Whether to automatically generate and include the attribute `__all__` if not given.
+        (This is required to support wildcard imports of deferred attributes. Note that a wildcard import causes immediate resolution of the imported attributes.)
+
+    For examples and additional information please visit the project's homepage at https://github.com/bachorp/lazy-imports/.
     """  # noqa: E501
 
     def __init__(
         self,
-        *statement_or_code: Union[str, Union[ast.ImportFrom, tuple[str, Any]]],  # spell out types for transparency
+        *statement_or_code: Union[str, Union[ast.ImportFrom, tuple[str, Any]]],
         name: str,
         doc: Union[str, None] = None,
-        auto___all__: bool = True,
-        unsafe_overrides: Collection[str] = frozenset(),
+        auto_all: bool = True,
     ) -> None:
         super().__init__(name, doc)
         self.__deferred_attrs: dict[str, _Deferred] = {}
@@ -148,7 +146,7 @@ class LazyModule(ModuleType):
             attrs[attr.name] = attr.value
 
         for name, value in attrs.items():  # pylint: disable=redefined-argument-from-local
-            if hasattr(self, name) and name not in unsafe_overrides:
+            if hasattr(self, name):
                 raise ValueError(f"not allowed to override reserved attribute {name!r} (with {value})")
 
             if isinstance(value, _Immediate):
@@ -158,14 +156,16 @@ class LazyModule(ModuleType):
             else:
                 assert_never(value)
 
-        # NOTE: Explicit __all__ is required because otherwise potential wildcard imports will use
-        #  the actual attributes, ignoring __dir__
-        if auto___all__ and "__all__" not in dir(self):
+        # NOTE: Explicit __all__ is required because otherwise potential wildcard imports will use the actual
+        #       attributes, ignoring __dir__.
+        if auto_all and "__all__" not in dir(self):
             setattr(self, "__all__", (*filter(lambda name: not name.startswith("_"), dir(self)),))
 
     def __dir__(self) -> Iterable[str]:
-        # NOTE: If `sub` is a deferred attribute import when the submodule `.sub` is loaded, `sub` will appear
-        #  in both `super.__dir__()` and `self.__deferred_attrs.keys()` and remain deferred indefinitely.
+        # NOTE: If `sub` is a deferred attribute import when the submodule `.sub` is loaded, the import system will
+        #       register `sub` as an attribute (of its parent module) such that `sub` appears in both `super.__dir__()`
+        #       and `self.__deferred_attrs.keys()`. It will then remain deferred indefinitely.
+        #       That's why we have to purge duplicates here.
         return set(itertools.chain(super().__dir__(), self.__deferred_attrs.keys()))
 
     def __getattr__(self, name: str) -> Any:
@@ -182,7 +182,7 @@ class LazyModule(ModuleType):
             try:
                 value = getattr(importlib.import_module(target.module_relatively(), self.__name__), target.name)
             except Exception as e:
-                if sys.version_info >= (3, 11):  # TODO: Remove in 3.11+
+                if sys.version_info >= (3, 11):
                     e.add_note(  # pylint: disable=no-member
                         f"resolving attribute {name!r} ({target}) of lazy module {self.__name__}"
                     )
@@ -194,35 +194,3 @@ class LazyModule(ModuleType):
             return value
         finally:
             self.__resolving.pop(name)
-
-
-def as_package(file: Union[Path, str]) -> Iterable[tuple[str, Any]]:
-    # noqa: D205
-    """Creates the attributes `__file__` and `__path__` required for a module to be a (regular) package.
-    This allows to import subpackages from the appropriate locations.
-
-    The parameter `file` should be the path to the file from which the module is loaded.
-    If inside the (lazy) package's `__init__.py` file, `Path(__file__)` can be used.
-    """
-    path = file if isinstance(file, Path) else Path(file)
-    yield ("__file__", str(path))
-    yield ("__path__", (str(path.parent),))
-
-
-def load(module: ModuleType) -> None:
-    """Loads the module `module` by registering it in the global module store `sys.modules`."""
-    sys.modules[module.__name__] = module
-
-
-def module_source(name: str, package: Union[str, None]) -> str:
-    """Returns the source code of the module `name` without loading the module.
-
-    If `name` is relative, `package` must be supplied.
-    """
-    spec = importlib.util.find_spec(name, package)
-    if spec is None:
-        raise ModuleNotFoundError(
-            f"could not find module {name!r}{'' if package is None else f' in package {package}'}"
-        )
-
-    return inspect.getsource(importlib.util.module_from_spec(spec))

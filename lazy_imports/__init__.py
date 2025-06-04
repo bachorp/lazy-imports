@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""TODO."""
+"""For documentation visit https://github.com/bachorp/lazy-imports/."""
 
-from .lazy_module import LazyModule, ShadowingWarning, Statement, as_package, load, module_source
+from .lazy_module import LazyModule, ShadowingWarning, Statement
 from .try_import import try_import
+from .util import as_package, load, module_source
 from .v0.lazy_imports import LazyImporter
 
 
@@ -28,6 +29,7 @@ __all__ = [
     "LazyModule",
     "ShadowingWarning",
     "Statement",
+    # .util
     "as_package",
     "load",
     "module_source",

@@ -1,4 +1,4 @@
-name: Static Code Checks
+name: checks
 
 on:
   push:
@@ -31,28 +31,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install
+      - name: Install dependencies
         run: |
           python -m pip install -U pip
-          pip install --progress-bar off -U .[checking,optional]
+          pip install --progress-bar off -U .[checking,testing]
 
-      - name: Check with pydocstyle
-        run: pydocstyle --count ${{ env.src }} ${{ env.other-src }}
-
-      - name: Check with black
-        run: black ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff
-
-      - name: Check with flake8
-        run: flake8 ${{ env.src }} ${{ env.other-src }}
-
-      - name: Check with isort
-        run: isort ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff
-
-      - name: Check with mdformat
-        run: mdformat --check *.md
-
-      - name: Check with mypy
-        run: mypy --install-types --non-interactive ${{ env.src }} ${{ env.other-src }}
-
-      - name: Check with pylint
-        run: pylint ${{ env.src }}
+      - run: pydocstyle --count ${{ env.src }} ${{ env.other-src }}
+      - run: black ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff
+      - run: flake8 ${{ env.src }} ${{ env.other-src }}
+      - run: isort ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff
+      - run: mdformat --check *.md
+      - run: mypy --install-types --non-interactive ${{ env.src }} ${{ env.other-src }}
+      - run: pylint ${{ env.src }}
+      - run: pytest tests

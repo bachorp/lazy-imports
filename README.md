@@ -1,6 +1,6 @@
 [![](https://github.com/bachorp/lazy-imports/actions/workflows/static_checks.yml/badge.svg)](https://github.com/bachorp/lazy-imports/actions/workflows/static_checks.yml)
 [![](https://img.shields.io/pypi/pyversions/lazy-imports)](https://www.python.org)
-[![](https://img.shields.io/pypi/v/lazy-imports.svg)](https://pypi.python.org/pypi/lazy-imports)
+[![](https://img.shields.io/pypi/v/lazy-imports.svg)](https://pypi.org/project/lazy-imports/)
 
 This python utility package helps to create *lazy modules*.
 A lazy module defers loading (some of) its attributes until these attributes are first accessed.
@@ -10,7 +10,7 @@ A lazy import strategy can drastically reduce runtime and memory consumption.
 
 Additionally, this package provides a utility for *optional imports* with which one can import a module globally while triggering associated import errors only at use-sites (when and if a dependency is actually required, for example in the context of a specific functionality).
 
-[`lazy-imports`](<(https://pypi.org/project/lazy-imports/)>) is available on [the Python Package Index (PyPI)](https://pypi.org/project/lazy-imports/).
+[`lazy-imports`](https://pypi.org/project/lazy-imports/) is available on [the Python Package Index (PyPI)](https://pypi.org/project/lazy-imports/).
 
 > [!WARNING]
 > Python's import system is highly complex and side effects are ubiquitous.
@@ -26,7 +26,7 @@ Additionally, this package provides a utility for *optional imports* with which 
 ### Example 1
 
 Type checkers cannot reason about dynamic attributes.
-Therefore, we need a separate code path (using `typing.TYPE_CHECKING`) on which regular imports are used.
+Therefore, we need a separate code path (using [`typing.TYPE_CHECKING`](https://docs.python.org/3/library/typing.html#typing.TYPE_CHECKING)) on which regular imports are used.
 By moving the imports to a separate file and using the `module_source` utility, code duplication can be avoided.
 
 ```python
@@ -38,7 +38,7 @@ from .submodule import Interface as MyInterface
 
 > [!IMPORTANT]
 > Lazy attributes have to be proper attributes (defined in `__init__.py`) of the module they are imported from and cannot be submodules.
-> In this example, if `function` is a submodule of `absolute.package`, the lazy module won't (try to) load `absolute.package.function` such that an access of its attribute `function` might fail.
+> In this example, if `function` is a submodule of `absolute.package`, the lazy module won't (try to) load `absolute.package.function` as a module by itself; in this case, an access of the lazy module's attribute `function` might fail.
 
 ```python
 # __init__.py
@@ -58,13 +58,13 @@ else:
         LazyModule(
             # Attributes `__file__` and `__path__` (required for importing submodules of this module)
             *as_package(__file__),
-            # An eager attribute
+            # An ordinary (eager) attribute
             ("__version__", __version__),
             # Finds and parses the source of the submodule `_exports` (namely the file `_exports.py`)
             module_source("._exports", __name__),
             # Fully-qualified name of the module (required)
             name=__name__,
-            # Docstring from the top of of the module
+            # Docstring from the top of the module
             doc=__doc__,
         )
     )
@@ -109,26 +109,23 @@ You can see an example below.
 ```python
 from lazy_imports import try_import
 
-with try_import() as optional_package_import:  # use try_import as a context manager
+with try_import() as optional_package_import:  # use `try_import` as a context manager
     import optional_package  # optional package that might not be installed
-
-# other non optional functions here
 
 def optional_function():  # optional function that uses the optional package
     optional_package_import.check()  # check if the import was ok or raise a meaningful exception
-
     optional_package.some_external_function()  # use the optional package here
 ```
 
 ## [`LazyImporter`](./lazy_imports/v0/lazy_imports.py)
 
 > [!TIP]
-> Instead of `LazyImporter` we recommend to use its successor `LazyModule`, which
+> Instead of `LazyImporter` we recommend using its successor `LazyModule`, which
 >
 > - allows attributes to be imported from any module (and not just submodules),
-> - offers to specify imports as plain python code,
+> - offers to specify imports as plain python code (which can then be sourced from a dedicated file),
 > - supports `__doc__`, and
-> - applies additional sanity checks (such as for cyclic imports).
+> - applies additional sanity checks (such as preventing cyclic imports).
 
 Usage example taken from [`hpoflow/__init__.py`](https://github.com/telekom/HPOflow/blob/1b26f3b86cad607dd89a31fa9135256d956948cb/hpoflow/__init__.py):
 

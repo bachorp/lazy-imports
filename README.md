@@ -182,7 +182,7 @@ In December 2024 responsibility was transferred to [Pascal Bachor](https://githu
 ## Licensing
 
 Copyright (c) 2024-2025 Pascal Bachor<br/>
-Copyright (c) 2021 [Philip May](https://may.la/), [Deutsche Telekom AG](https://www.telekom.com/)<br/>
+Copyright (c) 2021 [Philip May](https://philipmay.org/), [Deutsche Telekom AG](https://www.telekom.com/)<br/>
 Copyright (c) 2020, 2021 [The HuggingFace Team](https://huggingface.co/)<br/>
 Copyright (c) 2018 Preferred Networks, Inc.
 

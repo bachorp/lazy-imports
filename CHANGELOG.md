@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.1
+
+### Bug Fixes
+
+- Make sure not to include additional packages in dist (https://github.com/bachorp/lazy-imports/issues/4)
+
+### Documentation
+
+- fix link to Philip May (https://github.com/bachorp/lazy-imports/pull/1) by @PhilipMay
+- utilize dedicated license parameter (https://github.com/bachorp/lazy-imports/pull/5/commits/66200c1f82a56f6aed98f2456ebe59c9a0406856)
+
 ## 1.0.0
 
 `v1` introduces a new class `LazyModule`, an improved version of `LazyImporter`, which

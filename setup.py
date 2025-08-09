@@ -72,10 +72,10 @@ setuptools.setup(
     install_requires=install_requires,
     extras_require=extras_require,
     keywords=keywords,
+    license="Apache-2.0",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",

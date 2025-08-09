@@ -67,7 +67,7 @@ setuptools.setup(
         "Bug Tracker": source_code + "/issues",
         "Source Code": source_code,
     },
-    packages=setuptools.find_packages(),
+    packages=["lazy_imports", "lazy_imports.v0"],
     python_requires=">=3.9",
     install_requires=install_requires,
     extras_require=extras_require,

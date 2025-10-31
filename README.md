@@ -12,7 +12,7 @@ Additionally, this package provides a utility for *optional imports* with which 
 
 [`lazy-imports`](https://pypi.org/project/lazy-imports/) is available on [the Python Package Index (PyPI)](https://pypi.org/project/lazy-imports/).
 
-> [!WARNING]
+> [!IMPORTANT]
 > Python's import system is highly complex and side effects are ubiquitous.
 > Although employing lazy imports (in a sanely structured project) is quite safe, you should keep in mind that there are necessarily subtle differences between lazy and ordinary (eager) imports/modules.
 
@@ -20,6 +20,16 @@ Additionally, this package provides a utility for *optional imports* with which 
 > Using a dedicated package such as this one means that you don't have to go through all the details yourself.
 > Still, we recommend to become acquainted with the basic functionality of lazy modules (such as understanding the roles of `__getattr__`, `__dir__`, and `__all__`).
 > If you'd like to talk about it, feel free to open the [discussion](https://github.com/bachorp/lazy-imports/discussions) on Github.
+
+### Table of Contents
+
+- [`LazyModule`](#lazymodule)
+  - [Example 1](#example-1)
+  - [Example 2](#example-2)
+- [`try_import`](#try_import)
+- [`LazyImporter`](#lazyimporter)
+- [History](#history)
+- [Licensing](#licensing)
 
 ## [`LazyModule`](./lazy_imports/lazy_module.py)
 

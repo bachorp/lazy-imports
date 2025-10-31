@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+Adds support for Python 3.14.
+
 ## 1.0.1
 
 ### Bug Fixes

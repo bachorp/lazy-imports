@@ -2,15 +2,17 @@
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [Reporting Bugs and Issues](#reporting-bugs-and-issues)
-- [Engaging in our Project](#engaging-in-our-project)
-- [Pull Request Checklist](#pull-request-checklist)
-- [Contributing Code](#contributing-code)
-- [Contributing Documentation](#contributing-documentation)
-- [Testing, linting and formatting](#testing-linting-and-formatting)
-- [Style Guidelines](#style-guidelines)
-- [Code Owners](#code-owners)
+- [Contributing](#contributing)
+  - [Table of Contents](#table-of-contents)
+  - [Code of Conduct](#code-of-conduct)
+  - [Reporting Bugs and Issues](#reporting-bugs-and-issues)
+  - [Engaging in our Project](#engaging-in-our-project)
+  - [Pull Request Checklist](#pull-request-checklist)
+  - [Contributing Code](#contributing-code)
+  - [Contributing Documentation](#contributing-documentation)
+  - [Testing, linting and formatting](#testing-linting-and-formatting)
+  - [Style Guidelines](#style-guidelines)
+  - [Code Owners](#code-owners)
 
 ## Code of Conduct
 
@@ -110,7 +112,7 @@ To run unit tests locally, ensure that you have installed all relevant requireme
 You will probably want to install it in "editable mode" if you are developing locally.
 
 ```bash
-$ pip install -e .[testing,checking]
+$ pip install -e '.[testing,checking]'
 ```
 
 Unit tests can then be run as follows:
@@ -133,7 +135,7 @@ $ make format
 
 ## Style Guidelines
 
-- The code must be compatible with Python 3.9 and higher.
+- The code must be compatible with Python 3.10 and higher.
 - Max line length is 119
 - Docstrings
   - Use the [Google docstring format](https://github.com/google/styleguide/blob/gh-pages/pyguide.md#38-comments-and-docstrings).

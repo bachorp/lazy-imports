@@ -22,7 +22,6 @@ to publish it as a standalone package.
 """
 
 from types import TracebackType
-from typing import Optional, Tuple, Type
 
 
 class _DeferredImportExceptionContextManager:
@@ -34,7 +33,7 @@ class _DeferredImportExceptionContextManager:
     """
 
     def __init__(self) -> None:
-        self._deferred: Optional[Tuple[Exception, str]] = None
+        self._deferred: tuple[Exception, str] | None = None
 
     def __enter__(self) -> "_DeferredImportExceptionContextManager":
         """Enter the context manager.
@@ -47,10 +46,10 @@ class _DeferredImportExceptionContextManager:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[Exception]],
-        exc_value: Optional[Exception],
-        traceback: Optional[TracebackType],
-    ) -> Optional[bool]:
+        exc_type: type[Exception] | None,
+        exc_value: Exception | None,
+        traceback: TracebackType | None,
+    ) -> bool | None:
         """Exit the context manager.
 
         Args:
@@ -66,24 +65,25 @@ class _DeferredImportExceptionContextManager:
             :obj:`True` will suppress any exceptions avoiding them from propagating.
 
         """
-        if isinstance(exc_value, (ImportError, SyntaxError)):
-            if isinstance(exc_value, ImportError):
+        match exc_value:
+            case ImportError():
                 message = (
                     f"Tried to import '{exc_value.name}' but failed. Please make sure that the package is "
                     f"installed correctly to use this feature. Actual error: {exc_value}."
                 )
-            elif isinstance(exc_value, SyntaxError):  # type: ignore [reportUnnecessaryIsInstance]
+
+            case SyntaxError():
                 message = (
                     f"Tried to import a package but failed due to a syntax error in {exc_value.filename}. Please "
                     "make sure that the Python version is correct to use this feature. Actual "
                     f"error: {exc_value}."
                 )
-            else:
-                assert False
 
-            self._deferred = (exc_value, message)
-            return True
-        return None
+            case _:
+                return None
+
+        self._deferred = (exc_value, message)
+        return True
 
     def is_successful(self) -> bool:
         """Return whether the context manager has caught any exceptions.

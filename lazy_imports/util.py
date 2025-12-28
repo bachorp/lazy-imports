@@ -19,14 +19,10 @@ import inspect
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Iterable, Union
+from typing import Any, Iterable
 
 
-# Can be improved with later versions of Python:
-# 3.10+: Union -> |
-
-
-def as_package(file: Union[Path, str]) -> Iterable[tuple[str, Any]]:
+def as_package(file: Path | str) -> Iterable[tuple[str, Any]]:
     # noqa: D205
     """Creates the attributes `__file__` and `__path__` required for a module to be a (regular) package.
     This allows to import subpackages from the appropriate locations.
@@ -44,7 +40,7 @@ def load(module: ModuleType) -> None:
     sys.modules[module.__name__] = module
 
 
-def module_source(name: str, package: Union[str, None]) -> str:
+def module_source(name: str, package: str | None) -> str:
     """Returns the source code of the module `name` without loading the module.
 
     If `name` is relative, `package` must be supplied.

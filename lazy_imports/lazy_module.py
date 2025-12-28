@@ -21,12 +21,8 @@ import sys
 import warnings
 from dataclasses import dataclass
 from types import ModuleType
-from typing import Any, Iterable, Union
+from typing import Any, Iterable, TypeAlias
 
-
-# Can be improved with later versions of Python:
-# 3.10+: Union -> |, if/elif -> match, TypeAlias
-# 3.12+: type statement
 
 if sys.version_info >= (3, 11):
     from typing import assert_never
@@ -37,25 +33,31 @@ else:
         value = repr(arg)
         if len(value) > 100:
             value = value[:100] + "..."
+
         raise AssertionError(f"Expected code to be unreachable, but got: {value}")
 
 
-Statement = Union[tuple[str, Any], ast.ImportFrom]
+Statement: TypeAlias = tuple[str, Any] | ast.ImportFrom
 
 
-def _parse(statement_or_code: Union[str, "Statement"]) -> Iterable["Statement"]:
-    if isinstance(statement_or_code, str):
-        for stmt in ast.parse(statement_or_code).body:
-            if isinstance(stmt, ast.ImportFrom):
-                yield stmt
-            elif isinstance(stmt, ast.Import):
-                raise ValueError(f"statements of type {ast.Import.__qualname__} are not supported")
-            else:
-                raise ValueError(
-                    f"expected parsed statement to be of type {ast.ImportFrom.__qualname__} but got {type(stmt).__qualname__}"  # noqa: E501
-                )
-    else:
-        yield statement_or_code
+def _parse(statement_or_code: str | Statement) -> Iterable[Statement]:
+    match statement_or_code:
+        case str():
+            for stmt in ast.parse(statement_or_code).body:
+                match stmt:
+                    case ast.ImportFrom():
+                        yield stmt
+
+                    case ast.Import():
+                        raise ValueError(f"statements of type {ast.Import.__qualname__} are not supported")
+
+                    case _:
+                        raise ValueError(
+                            f"expected parsed statement to be of type {ast.ImportFrom.__qualname__} but got {type(stmt).__qualname__}"  # noqa: E501
+                        )
+
+        case _:
+            yield statement_or_code
 
 
 @dataclass
@@ -69,7 +71,7 @@ class _Immediate:
 @dataclass
 class _AttributeImport:
     level: int
-    module: Union[str, None]
+    module: str | None
     name: str
 
     def module_relatively(self) -> str:  # noqa: D103; pylint: disable=missing-function-docstring
@@ -79,8 +81,8 @@ class _AttributeImport:
         return f"attribute {self.name!r} imported from module {self.module_relatively()}"
 
 
-_Deferred = _AttributeImport
-_AttributeValue = Union[_Immediate, _Deferred]
+_Deferred: TypeAlias = _AttributeImport
+_AttributeValue: TypeAlias = _Immediate | _Deferred
 
 
 @dataclass
@@ -89,20 +91,23 @@ class _Attribute:
     value: _AttributeValue
 
 
-def _to_attributes(statement: "Statement") -> Iterable[_Attribute]:
-    if isinstance(statement, tuple):
-        yield _Attribute(name=statement[0], value=_Immediate(value=statement[1]))
-    elif isinstance(statement, ast.ImportFrom):  # pyright: ignore[reportUnnecessaryIsInstance]
-        for name in statement.names:
-            if name.name == "*":
-                raise ValueError(f"cannot lazily perform a wildcard import (from module {statement.module})")
+def _to_attributes(statement: Statement) -> Iterable[_Attribute]:
+    match statement:
+        case tuple():
+            yield _Attribute(name=statement[0], value=_Immediate(value=statement[1]))
 
-            yield _Attribute(
-                name=name.asname or name.name,
-                value=_AttributeImport(module=statement.module, name=name.name, level=statement.level),
-            )
-    else:
-        assert_never(statement)
+        case ast.ImportFrom():
+            for name in statement.names:
+                if name.name == "*":
+                    raise ValueError(f"cannot lazily perform a wildcard import (from module {statement.module})")
+
+                yield _Attribute(
+                    name=name.asname or name.name,
+                    value=_AttributeImport(module=statement.module, name=name.name, level=statement.level),
+                )
+
+        case _:
+            assert_never(statement)
 
 
 class ShadowingWarning(UserWarning):
@@ -127,9 +132,9 @@ class LazyModule(ModuleType):
 
     def __init__(
         self,
-        *statement_or_code: Union[str, Union[ast.ImportFrom, tuple[str, Any]]],
+        *statement_or_code: str | ast.ImportFrom | tuple[str, Any],
         name: str,
-        doc: Union[str, None] = None,
+        doc: str | None = None,
         auto_all: bool = True,
     ) -> None:
         super().__init__(name, doc)
@@ -149,12 +154,15 @@ class LazyModule(ModuleType):
             if hasattr(self, name):
                 raise ValueError(f"not allowed to override reserved attribute {name!r} (with {value})")
 
-            if isinstance(value, _Immediate):
-                setattr(self, name, value.value)
-            elif isinstance(value, _AttributeImport):  # pyright: ignore[reportUnnecessaryIsInstance]
-                self.__deferred_attrs[name] = value
-            else:
-                assert_never(value)
+            match value:
+                case _Immediate():
+                    setattr(self, name, value.value)
+
+                case _AttributeImport():
+                    self.__deferred_attrs[name] = value
+
+                case _:
+                    assert_never(value)
 
         # NOTE: Explicit __all__ is required because otherwise potential wildcard imports will use the actual
         #       attributes, ignoring __dir__.

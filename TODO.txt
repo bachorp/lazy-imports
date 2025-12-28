@@ -1,0 +1,4 @@
+Can be improved with later versions of Python:
+
+3.11+: assert_never, Exception.add_note, Self
+3.12+: type statement

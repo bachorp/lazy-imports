@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+Bump python to 3.10 and modernize.
+
 ## 1.1.0
 
 Adds support for Python 3.14.

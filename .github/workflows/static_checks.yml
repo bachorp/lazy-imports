@@ -37,7 +37,7 @@ jobs:
           pip install --progress-bar off -U .[checking,testing]
 
       - run: pydocstyle --count ${{ env.src }} ${{ env.other-src }}
-      - run: black ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff --target-version py310
+      - run: black ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff
       - run: flake8 ${{ env.src }} ${{ env.other-src }}
       - run: isort ${{ env.src }} ${{ env.test-src }} ${{ env.other-src }} --check --diff
       - run: mdformat --check *.md

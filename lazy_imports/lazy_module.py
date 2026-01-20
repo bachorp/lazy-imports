@@ -23,7 +23,6 @@ from dataclasses import dataclass
 from types import ModuleType
 from typing import Any, Iterable, TypeAlias
 
-
 if sys.version_info >= (3, 11):
     from typing import assert_never
 else:

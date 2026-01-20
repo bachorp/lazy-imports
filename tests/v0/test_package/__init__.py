@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING
 
 from lazy_imports import LazyImporter, __version__
 
-
 _import_structure = {
     "module_a": ["func_of_module_a"],
     "module_b": ["func_of_module_b"],

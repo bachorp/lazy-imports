@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from lazy_imports import LazyModule, as_package, load, module_source
 
-
 __version__ = "0.1.0"
 
 

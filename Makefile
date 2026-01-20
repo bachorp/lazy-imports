@@ -4,7 +4,7 @@ other-src := setup.py
 
 check:
 	pydocstyle --count $(src) $(other-src)
-	black $(src) $(test-src) $(other-src) --check --diff --target-version py310
+	black $(src) $(test-src) $(other-src) --check --diff
 	flake8 $(src) $(other-src)
 	isort $(src) $(test-src) $(other-src) --check --diff
 	mdformat --check *.md
@@ -12,7 +12,7 @@ check:
 	pylint $(src)
 
 format:
-	black $(src) $(test-src) $(other-src) --target-version py310
+	black $(src) $(test-src) $(other-src)
 	isort $(src) $(test-src) $(other-src)
 	mdformat *.md
 

@@ -19,7 +19,6 @@ from .try_import import try_import
 from .util import as_package, load, module_source
 from .v0.lazy_imports import LazyImporter
 
-
 # Versioning follows the Semantic Versioning Specification https://semver.org/ and
 # PEP 440 -- Version Identification and Dependency Specification: https://www.python.org/dev/peps/pep-0440/  # noqa: E501
 __version__ = "1.2.0"

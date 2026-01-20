@@ -18,7 +18,6 @@ import os
 
 import setuptools
 
-
 project_name = "lazy_imports"
 source_code = "https://github.com/bachorp/lazy-imports"
 keywords = "import imports lazy"

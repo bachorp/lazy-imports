@@ -1,11 +1,11 @@
 [tool.black]
 line-length = 119
-target-version = ["py39"]
+target-version = ["py310"]
 
 [tool.isort]
 profile = "black"
-lines_after_imports = 2
 line_length = 119
+py_version = "310"
 
 [tool.pylint."MASTER"]
 load-plugins = "pylintfileheader"
